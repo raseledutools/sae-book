@@ -2,88 +2,232 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>SAE Electric Merit List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAE Merit Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f7f6; }
-        h2 { text-align: center; color: #2c3e50; }
-        .container { overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; white-space: nowrap; }
-        th { background-color: #3498db; color: white; padding: 12px; text-align: center; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 14px; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; }
-        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #7f8c8d; }
+        :root { 
+            --primary: #2563eb; --primary-hover: #1d4ed8;
+            --bg: #f8fafc; --card: #ffffff;
+            --text-main: #1e293b; --text-muted: #64748b;
+            --border: #cbd5e1;
+        }
+        
+        body { font-family: 'Segoe UI', 'Siyam Rupali', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text-main); }
+        .header { text-align: center; margin-bottom: 20px; }
+        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 24px; text-transform: uppercase; }
+        
+        /* Tabs */
+        .tabs-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: var(--card); color: var(--text-muted); border: 2px solid var(--border); padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+
+        /* Actions Bar */
+        .action-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 15px; gap: 15px; }
+        .search-box { flex: 1; max-width: 400px; }
+        #searchInput { width: 100%; padding: 9px 15px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+        #searchInput:focus { border-color: var(--primary); }
+        
+        .btn-download { background: #059669; color: white; border: none; padding: 9px 20px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-download:hover { background: #047857; box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3); }
+
+        /* Compact Table Design */
+        .table-container { background: var(--card); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; border: 1px solid var(--border); margin: 0 auto; max-width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; font-size: 12px; } /* Compact Font Size */
+        
+        th { background: #1e293b; color: white; padding: 10px 8px; text-align: center; position: sticky; top: 0; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px; }
+        td { padding: 7px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #334155; white-space: nowrap; }
+        
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover { background: #eff6ff; }
+
+        /* Specific Colors */
+        .col-merit { font-weight: 800; color: #dc2626; background: #fef2f2; font-size: 13px; }
+        .col-regi { font-weight: bold; color: #d97706; }
+        .col-zone { color: #0284c7; font-weight: 600; }
+        .col-name { font-weight: bold; color: #0f172a; text-align: left !important; }
+
+        /* Print Specific */
+        #pdfArea { padding: 10px; background: white; }
     </style>
 </head>
 <body>
 
-    <h2>এসএই (ইলেকট্রিক) পূর্ণাঙ্গ মেরিট লিস্ট</h2>
-    
-    <div class="container">
-        <table id="data-table">
-            <thead>
-                <tr id="table-header">
-                    </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+    <div class="header">
+        <h1>পূর্ণাঙ্গ মেরিট ড্যাশবোর্ড</h1>
+        <div id="tabStats" style="font-size: 13px; color: #64748b; font-weight: bold;">লোড হচ্ছে...</div>
     </div>
 
-    <div class="footer">Generated from New Sae List.txt</div>
+    <div id="tabsContainer" class="tabs-container"></div>
+
+    <div class="action-bar">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 নাম, রেজিঃ বা মেরিট নম্বর দিয়ে খুঁজুন..." onkeyup="filterTable()">
+        </div>
+        <button class="btn-download" onclick="downloadPDF()">
+            📥 ডাউনলোড PDF
+        </button>
+    </div>
+
+    <div id="pdfArea">
+        <div style="text-align: center; margin-bottom: 10px; display: none;" id="pdfHeader">
+            <h2 id="pdfTitle" style="color: #1e293b; margin: 0;"></h2>
+        </div>
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        // ফাইলটি পড়ার ফাংশন
-        fetch('New Sae List.txt')
-        .then(response => response.text())
-        .then(data => {
-            const rows = data.split('\n').filter(row => row.trim() !== "");
-            const headerData = rows[0].split('\t').map(h => h.trim());
-            
-            // কলামের ইনডেক্স খুঁজে বের করা
-            const deptIdx = headerData.indexOf('Department');
-            const meritIdx = headerData.indexOf('Serial No. or Merit No.');
-            const timestampIdx = headerData.indexOf('Timestamp');
+        let globalData = [];
+        let headers = [];
+        let orderedIndices = [];
+        let currentPost = "";
 
-            // ১. কলামের হেডার সেট করা (Timestamp বাদে এবং শুরুতে SL)
-            const tableHeader = document.getElementById('table-header');
-            tableHeader.innerHTML = "<th>SL</th>";
-            headerData.forEach((h, index) => {
-                if (index !== timestampIdx) {
-                    tableHeader.innerHTML += `<th>${h}</th>`;
+        // কলাম খোঁজার হেল্পার ফাংশন
+        function getIndex(keywords) {
+            for(let kw of keywords) {
+                let idx = headers.findIndex(h => h.toLowerCase().includes(kw.toLowerCase()));
+                if(idx !== -1) return idx;
+            }
+            return -1;
+        }
+
+        fetch('New Sae List.txt')
+        .then(res => res.text())
+        .then(content => {
+            const rows = content.split('\n').filter(r => r.trim().length > 0);
+            headers = rows[0].split('\t').map(h => h.trim());
+            globalData = rows.slice(1).map(row => row.split('\t').map(c => c.trim()));
+
+            // কলাম শনাক্তকরণ
+            const postIdx = getIndex(['post', 'department', 'বিভাগ', 'পদ']);
+            const meritIdx = getIndex(['merit', 'Serial No. or Merit No.']);
+            const regiIdx = getIndex(['registration', 'রেজি']);
+            const zoneIdx = getIndex(['zone', 'জোন']);
+            const nameIdx = getIndex(['name', 'নাম']);
+            
+            // অপ্রয়োজনীয় কলাম (Serial, SL, Timestamp) বাদ দেওয়া
+            const excludedIndices = [];
+            headers.forEach((h, i) => {
+                let lowerH = h.toLowerCase();
+                if (lowerH === 'serial' || lowerH === 'sl' || lowerH === 'timestamp' || i === postIdx) {
+                    excludedIndices.push(i);
                 }
             });
 
-            // ২. ডেটা ফিল্টার এবং প্রসেস করা
-            let electricRows = [];
-            for (let i = 1; i < rows.length; i++) {
-                const cols = rows[i].split('\t').map(c => c.trim());
-                if (cols[deptIdx] && cols[deptIdx].toLowerCase().includes('electric')) {
-                    electricRows.push(cols);
+            // কলাম সাজানো: Merit -> Regi -> Zone -> Name -> বাকি সব
+            let priorityIndices = [meritIdx, regiIdx, zoneIdx, nameIdx].filter(i => i !== -1);
+            let restIndices = [];
+            
+            headers.forEach((h, i) => {
+                if(!priorityIndices.includes(i) && !excludedIndices.includes(i)) {
+                    restIndices.push(i);
                 }
+            });
+
+            orderedIndices = [...priorityIndices, ...restIndices];
+
+            // ১. হেডার প্রিন্ট করা
+            const tableHeader = document.getElementById('tableHeader');
+            let thHTML = '';
+            orderedIndices.forEach(idx => {
+                thHTML += `<th>${headers[idx]}</th>`;
+            });
+            tableHeader.innerHTML = thHTML;
+
+            // ২. ডায়নামিক পোস্ট/ট্যাব তৈরি
+            if(postIdx !== -1) {
+                let posts = [...new Set(globalData.map(row => row[postIdx]))].filter(p => p);
+                const tabsContainer = document.getElementById('tabsContainer');
+                
+                posts.forEach((post, index) => {
+                    let btn = document.createElement('button');
+                    btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+                    btn.innerText = post.toUpperCase();
+                    btn.onclick = () => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        renderTable(post, postIdx, meritIdx);
+                    };
+                    tabsContainer.appendChild(btn);
+                });
+
+                if(posts.length > 0) renderTable(posts[0], postIdx, meritIdx);
+            }
+        })
+        .catch(err => alert("ডেটা লোড করতে সমস্যা হচ্ছে। ফাইলটি সঠিক জায়গায় আছে কিনা নিশ্চিত করুন।"));
+
+        function renderTable(post, postIdx, meritIdx) {
+            currentPost = post;
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let filteredData = globalData.filter(row => row[postIdx] === post);
+            
+            // মেরিট অনুযায়ী সাজানো (Merit প্রথম কলাম)
+            if(meritIdx !== -1) {
+                filteredData.sort((a, b) => parseInt(a[meritIdx] || 0) - parseInt(b[meritIdx] || 0));
             }
 
-            // ৩. মেরিট অনুযায়ী সর্টিং (ছোট থেকে বড়)
-            electricRows.sort((a, b) => {
-                return parseInt(a[meritIdx]) - parseInt(b[meritIdx]);
-            });
+            document.getElementById('tabStats').innerText = `${post.toUpperCase()} - মোট সদস্য: ${filteredData.length} জন`;
+            document.getElementById('pdfTitle').innerText = `${post.toUpperCase()} - পূর্ণাঙ্গ মেরিট তালিকা`;
 
-            // ৪. টেবিল বডিতে ডেটা বসানো
-            const tableBody = document.getElementById('table-body');
-            electricRows.forEach((row, index) => {
-                let htmlRow = `<td>${index + 1}</td>`; // SL Number
-                row.forEach((cell, cellIdx) => {
-                    if (cellIdx !== timestampIdx) {
-                        htmlRow += `<td>${cell}</td>`;
-                    }
+            filteredData.forEach(row => {
+                let tr = document.createElement('tr');
+                let rowHTML = '';
+                
+                orderedIndices.forEach((colIdx, pos) => {
+                    let cellValue = row[colIdx] || "-";
+                    let cssClass = "";
+                    
+                    // কালার ডিজাইন (পজিশন অনুযায়ী)
+                    if(pos === 0) cssClass = "col-merit";
+                    else if(pos === 1) cssClass = "col-regi";
+                    else if(pos === 2) cssClass = "col-zone";
+                    else if(pos === 3) cssClass = "col-name";
+
+                    rowHTML += `<td class="${cssClass}">${cellValue}</td>`;
                 });
-                tableBody.innerHTML += `<tr>${htmlRow}</tr>`;
+                
+                tr.innerHTML = rowHTML;
+                tbody.appendChild(tr);
             });
-        })
-        .catch(err => {
-            alert("Error: New Sae List.txt ফাইলটি পাওয়া যায়নি অথবা ব্রাউজারে 'CORS' এর কারণে ব্লক হয়েছে। (Solution: Firefox ব্যবহার করুন অথবা একটি Local Server এ ওপেন করুন)");
-            console.error(err);
-        });
+        }
+
+        function filterTable() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let tr = document.getElementById("tableBody").getElementsByTagName("tr");
+            for (let i = 0; i < tr.length; i++) {
+                let text = tr[i].textContent || tr[i].innerText;
+                tr[i].style.display = text.toUpperCase().indexOf(input) > -1 ? "" : "none";
+            }
+        }
+
+        // PDF ডাউনলোড ফাংশন (html2pdf)
+        function downloadPDF() {
+            document.getElementById('pdfHeader').style.display = 'block'; // PDF এর জন্য টাইটেল শো করা
+            
+            const element = document.getElementById('pdfArea');
+            const opt = {
+                margin:       0.3,
+                filename:     `${currentPost}_Merit_List.pdf`,
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' } // A3 ল্যান্ডস্কেপ যাতে সব কলাম ধরে
+            };
+
+            // PDF জেনারেট করা
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.getElementById('pdfHeader').style.display = 'none'; // কাজ শেষ হলে টাইটেল হাইড করা
+            });
+        }
     </script>
 </body>
 </html>
