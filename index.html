@@ -3,75 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAE Merit List - Excel Pro View</title>
+    <title>SAE Merit List - Premium Pro View</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { 
-            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; 
-            background-color: #f3f2f1; margin: 0; padding: 10px 20px; color: #000; 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #4f46e5; /* Indigo */
+            --primary-dark: #3730a3;
+            --secondary: #0ea5e9; /* Sky Blue */
+            --accent: #f59e0b; /* Amber */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
         }
 
-        /* Top Bar */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fff; padding: 10px 20px; border-bottom: 3px solid #107c41; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h2 { margin: 0; color: #107c41; font-size: 22px; }
+        body { 
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 15px 25px; 
+            color: var(--text-main); 
+        }
+
+        /* Top Header Design */
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; color: white;
+        }
+        h2 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        
+        /* Action Buttons */
+        .action-btns { display: flex; align-items: center; gap: 12px; }
+        .row-count { background: rgba(255,255,255,0.2); padding: 6px 15px; border-radius: 20px; font-weight: 600; font-size: 14px; backdrop-filter: blur(5px); }
         
         .action-btns button { 
-            padding: 6px 15px; margin-left: 10px; border: 1px solid #ccc; background: #f8f8f8; 
-            cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; border-radius: 4px;
+            padding: 9px 18px; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; 
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .action-btns button:hover { background: #e1e1e1; }
-        .btn-excel { color: #107c41; border-color: #107c41 !important; }
-        .btn-pdf { color: #b91d47; border-color: #b91d47 !important; }
+        .btn-excel { background-color: #10b981; color: white; }
+        .btn-excel:hover { background-color: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-pdf { background-color: #ef4444; color: white; }
+        .btn-pdf:hover { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
-        /* Excel Sheet Tabs */
-        .excel-tabs { display: flex; gap: 2px; margin-bottom: 0; overflow-x: auto; background: #ddd; padding: 5px 5px 0 5px; }
+        /* Modern Tabs */
+        .tabs-container { 
+            display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; 
+            padding-bottom: 5px; scrollbar-width: none;
+        }
         .tab-btn { 
-            background: #f3f2f1; border: 1px solid #ccc; border-bottom: none; 
-            padding: 6px 20px; cursor: pointer; font-size: 13px; font-weight: bold; color: #555; 
-            border-radius: 5px 5px 0 0; white-space: nowrap;
+            background: var(--card-bg); border: 1px solid var(--border-color); 
+            padding: 10px 24px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-light); 
+            border-radius: 30px; transition: all 0.3s ease; white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .tab-btn.active { background: #fff; color: #107c41; border-top: 3px solid #107c41; border-bottom: 1px solid #fff; margin-bottom: -1px; }
+        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .tab-btn.active { 
+            background: var(--primary); color: white; border-color: var(--primary); 
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); transform: translateY(-1px);
+        }
 
-        /* Excel Table Grid */
-        .table-container { background: #fff; overflow-x: auto; overflow-y: auto; border: 1px solid #ccc; height: calc(100vh - 160px); }
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; white-space: nowrap; }
+        /* Premium Table Grid */
+        .table-wrapper { 
+            background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+            overflow-x: auto; overflow-y: auto; height: calc(100vh - 190px); 
+            border: 1px solid var(--border-color);
+        }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1200px; white-space: nowrap; }
         
-        th, td { border: 1px solid #d4d4d4; padding: 6px 10px; font-size: 14px; text-align: left; }
-        th { background-color: #f3f2f1; font-weight: bold; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #a0a0a0; text-align: center; color: #333; }
+        th, td { padding: 12px 15px; font-size: 13.5px; text-align: left; border-bottom: 1px solid var(--border-color); }
         
-        /* কলাম ডিজাইন */
-        .col-center { text-align: center; }
-        .col-merit { font-weight: bold; text-align: center; background-color: #faf9f8; color: #b91d47; }
-        .col-name { font-weight: bold; color: #000; }
+        th { 
+            background-color: #f1f5f9; font-weight: 700; position: sticky; top: 0; z-index: 10; 
+            color: #334155; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+        }
         
+        /* Specific Column Styling */
+        .col-merit { font-weight: 800; color: #dc2626; text-align: center; background: #fef2f2; }
+        .col-regi { font-weight: 700; color: #d97706; text-align: center; }
+        .col-zone { color: #0284c7; font-weight: 600; text-align: center; }
+        .col-name { font-weight: 600; color: var(--text-main); }
+        .col-phone { font-family: monospace; font-size: 14px; font-weight: 600; color: #059669; }
+        
+        tr { transition: all 0.2s ease; }
         tr:nth-child(even) { background-color: #fafafa; }
-        tr:hover { background-color: #e5f3ff; } /* এক্সেল সিলেকশন হোভার */
+        tr:hover { background-color: #e0e7ff; }
+
+        #pdfArea { background: var(--card-bg); border-radius: 12px; }
         
-        #pdfArea { background: #fff; padding-bottom: 10px; }
-        
-        /* PDF এর জন্য টাইটেল */
-        #pdfHeader { display: none; text-align: center; padding: 15px; background: #fff; }
-        #pdfHeader h2 { color: #333; margin: 0; font-size: 24px; text-transform: uppercase; }
+        /* PDF Title (Hidden initially) */
+        #pdfHeader { display: none; text-align: center; padding: 20px; background: white; border-radius: 12px 12px 0 0; }
+        #pdfHeader h2 { color: var(--primary-dark); margin: 0; font-size: 26px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <h2>📊 মেরিট ড্যাশবোর্ড (Excel View)</h2>
+        <h2>✨ মেরিট ড্যাশবোর্ড প্রো</h2>
         <div class="action-btns">
-            <span id="rowCount" style="margin-right: 15px; font-size: 14px; font-weight: bold; color: #555;"></span>
-            <button class="btn-excel" onclick="downloadExcel()">📗 Download Excel</button>
-            <button class="btn-pdf" onclick="downloadPDF()">📕 Download PDF</button>
+            <span id="rowCount" class="row-count"></span>
+            <button class="btn-excel" onclick="downloadExcel()">📊 Download Excel</button>
+            <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
         </div>
     </div>
 
-    <div id="tabsContainer" class="excel-tabs"></div>
+    <div id="tabsContainer" class="tabs-container"></div>
 
     <div id="pdfArea">
         <div id="pdfHeader">
             <h2 id="pdfTitle"></h2>
         </div>
-        <div class="table-container" id="tableContainer">
+        <div class="table-wrapper" id="tableContainer">
             <table id="dataTable">
                 <thead>
                     <tr id="tableHeader"></tr>
@@ -87,6 +135,7 @@
         let orderedIndices = [];
         let currentPost = "";
 
+        // Column Finder
         function getIndex(keywords) {
             for(let kw of keywords) {
                 let idx = headers.findIndex(h => h.toLowerCase().includes(kw.toLowerCase()));
@@ -102,12 +151,15 @@
             headers = rows[0].split('\t').map(h => h.trim());
             globalData = rows.slice(1).map(row => row.split('\t').map(c => c.trim()));
 
+            // Detect Columns
             const postIdx = getIndex(['department', 'post', 'বিভাগ', 'পদ']);
             const meritIdx = getIndex(['merit', 'serial no', 'মেরিট']);
             const regiIdx = getIndex(['registration', 'রেজি']);
             const zoneIdx = getIndex(['zone', 'জোন']);
             const nameIdx = getIndex(['name', 'নাম']);
+            const phoneIdx = getIndex(['phone', 'mobile', 'ফোন', 'মোবাইল']); // Phone column update
             
+            // Exclude Unwanted Columns
             const excludedIndices = [];
             headers.forEach((h, i) => {
                 let lowerH = h.toLowerCase();
@@ -116,6 +168,7 @@
                 }
             });
 
+            // Order Logic: Merit -> Regi -> Zone -> Name -> Others
             let priorityIndices = [meritIdx, regiIdx, zoneIdx, nameIdx].filter(i => i !== -1);
             let restIndices = [];
             
@@ -127,6 +180,7 @@
 
             orderedIndices = [...priorityIndices, ...restIndices];
 
+            // 1. Build Header
             const tableHeader = document.getElementById('tableHeader');
             let thHTML = '';
             orderedIndices.forEach(idx => {
@@ -134,6 +188,7 @@
             });
             tableHeader.innerHTML = thHTML;
 
+            // 2. Build Tabs
             if(postIdx !== -1) {
                 let posts = [...new Set(globalData.map(row => row[postIdx]))].filter(p => p);
                 const tabsContainer = document.getElementById('tabsContainer');
@@ -145,23 +200,24 @@
                     btn.onclick = () => {
                         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        renderTable(post, postIdx, meritIdx);
+                        renderTable(post, postIdx, meritIdx, phoneIdx);
                     };
                     tabsContainer.appendChild(btn);
                 });
 
-                if(posts.length > 0) renderTable(posts[0], postIdx, meritIdx);
+                if(posts.length > 0) renderTable(posts[0], postIdx, meritIdx, phoneIdx);
             }
         })
         .catch(err => alert("ফাইল লোড করা যাচ্ছে না! 'New Sae List.txt' ফাইলটি একই ফোল্ডারে আছে কিনা নিশ্চিত করুন।"));
 
-        function renderTable(post, postIdx, meritIdx) {
+        function renderTable(post, postIdx, meritIdx, phoneIdx) {
             currentPost = post;
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             let filteredData = globalData.filter(row => row[postIdx] === post);
             
+            // Smart Sorting for Merit
             if(meritIdx !== -1) {
                 filteredData.sort((a, b) => {
                     let valA = parseInt(a[meritIdx]);
@@ -175,17 +231,28 @@
             document.getElementById('rowCount').innerText = `মোট: ${filteredData.length} জন`;
             document.getElementById('pdfTitle').innerText = `${post} - মেরিট তালিকা`;
 
+            // Populate Data
             filteredData.forEach(row => {
                 let tr = document.createElement('tr');
                 let rowHTML = '';
                 
                 orderedIndices.forEach((colIdx, pos) => {
-                    let cellValue = row[colIdx] !== undefined ? row[colIdx] : "-";
-                    let cssClass = "";
+                    let cellValue = row[colIdx] !== undefined ? row[colIdx].trim() : "-";
                     
+                    // --- SMART PHONE NUMBER FORMATTER ---
+                    if (colIdx === phoneIdx && cellValue !== "" && cellValue !== "-") {
+                        // Jodi number 0 diye shuru na hoy kintu digit hoy
+                        if (!cellValue.startsWith('0') && !isNaN(cellValue.charAt(0))) {
+                            cellValue = '0' + cellValue;
+                        }
+                    }
+
+                    let cssClass = "";
                     if(pos === 0) cssClass = "col-merit"; 
-                    else if(pos === 1 || pos === 2) cssClass = "col-center"; 
-                    else if(pos === 3) cssClass = "col-name"; 
+                    else if(pos === 1) cssClass = "col-regi"; 
+                    else if(pos === 2) cssClass = "col-zone"; 
+                    else if(pos === 3) cssClass = "col-name";
+                    else if(colIdx === phoneIdx) cssClass = "col-phone"; 
 
                     rowHTML += `<td class="${cssClass}">${cellValue}</td>`;
                 });
@@ -195,6 +262,7 @@
             });
         }
 
+        // CSV Export (Excel)
         function downloadExcel() {
             let csv = ['\uFEFF']; 
             let rows = document.querySelectorAll("#dataTable tr");
@@ -203,7 +271,12 @@
                 let row = [], cols = rows[i].querySelectorAll("td, th");
                 for (let j = 0; j < cols.length; j++) {
                     let data = cols[j].innerText.replace(/"/g, '""');
-                    row.push('"' + data + '"');
+                    // Force Excel to treat phone numbers as text by adding ="number" format or just quoting
+                    if (cols[j].classList.contains('col-phone')) {
+                        row.push('="' + data + '"');
+                    } else {
+                        row.push('"' + data + '"');
+                    }
                 }
                 csv.push(row.join(","));
             }
@@ -217,40 +290,31 @@
             downloadLink.click();
         }
 
-        // FULL PDF DOWNLOAD FIX (কোনো কলাম কাটা পড়বে না)
+        // Advanced Full PDF Download
         function downloadPDF() {
             let tableContainer = document.getElementById('tableContainer');
             let pdfArea = document.getElementById('pdfArea');
             let pdfHeader = document.getElementById('pdfHeader');
             
-            // টেবিলের আসল চওড়া মেপে নেওয়া
             let fullWidth = tableContainer.scrollWidth;
 
-            // স্ক্রলবার সরিয়ে টেবিলকে তার অরিজিনাল সাইজে ওপেন করা
             tableContainer.style.height = 'auto';
             tableContainer.style.overflow = 'visible';
             tableContainer.style.width = fullWidth + 'px'; 
             pdfArea.style.width = fullWidth + 'px'; 
-            
             pdfHeader.style.display = 'block';
 
             const opt = {
                 margin:       0.2,
                 filename:     `${currentPost}_Merit_List.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    width: fullWidth, // পুরো উইডথ ক্যাপচার করবে
-                    windowWidth: fullWidth 
-                },
-                jsPDF:        { unit: 'in', format: 'a2', orientation: 'landscape' }, // A2 সাইজ ব্যবহার করা হয়েছে যাতে সব ধরে
+                html2canvas:  { scale: 2, useCORS: true, width: fullWidth, windowWidth: fullWidth },
+                jsPDF:        { unit: 'in', format: 'a2', orientation: 'landscape' },
                 pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            // PDF তৈরি হওয়ার পর আবার আগের অবস্থায় ফিরিয়ে আনা
             html2pdf().set(opt).from(pdfArea).save().then(() => {
-                tableContainer.style.height = 'calc(100vh - 160px)';
+                tableContainer.style.height = 'calc(100vh - 190px)';
                 tableContainer.style.width = '100%';
                 tableContainer.style.overflowX = 'auto';
                 tableContainer.style.overflowY = 'auto';
