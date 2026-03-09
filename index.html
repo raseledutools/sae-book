@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>SAE Electric Merit List</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f7f6; }
+        h2 { text-align: center; color: #2c3e50; }
+        .container { overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; white-space: nowrap; }
+        th { background-color: #3498db; color: white; padding: 12px; text-align: center; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 14px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <h2>এসএই (ইলেকট্রিক) পূর্ণাঙ্গ মেরিট লিস্ট</h2>
+    
+    <div class="container">
+        <table id="data-table">
+            <thead>
+                <tr id="table-header">
+                    </tr>
+            </thead>
+            <tbody id="table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="footer">Generated from New Sae List.txt</div>
+
+    <script>
+        // ফাইলটি পড়ার ফাংশন
+        fetch('New Sae List.txt')
+        .then(response => response.text())
+        .then(data => {
+            const rows = data.split('\n').filter(row => row.trim() !== "");
+            const headerData = rows[0].split('\t').map(h => h.trim());
+            
+            // কলামের ইনডেক্স খুঁজে বের করা
+            const deptIdx = headerData.indexOf('Department');
+            const meritIdx = headerData.indexOf('Serial No. or Merit No.');
+            const timestampIdx = headerData.indexOf('Timestamp');
+
+            // ১. কলামের হেডার সেট করা (Timestamp বাদে এবং শুরুতে SL)
+            const tableHeader = document.getElementById('table-header');
+            tableHeader.innerHTML = "<th>SL</th>";
+            headerData.forEach((h, index) => {
+                if (index !== timestampIdx) {
+                    tableHeader.innerHTML += `<th>${h}</th>`;
+                }
+            });
+
+            // ২. ডেটা ফিল্টার এবং প্রসেস করা
+            let electricRows = [];
+            for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i].split('\t').map(c => c.trim());
+                if (cols[deptIdx] && cols[deptIdx].toLowerCase().includes('electric')) {
+                    electricRows.push(cols);
+                }
+            }
+
+            // ৩. মেরিট অনুযায়ী সর্টিং (ছোট থেকে বড়)
+            electricRows.sort((a, b) => {
+                return parseInt(a[meritIdx]) - parseInt(b[meritIdx]);
+            });
+
+            // ৪. টেবিল বডিতে ডেটা বসানো
+            const tableBody = document.getElementById('table-body');
+            electricRows.forEach((row, index) => {
+                let htmlRow = `<td>${index + 1}</td>`; // SL Number
+                row.forEach((cell, cellIdx) => {
+                    if (cellIdx !== timestampIdx) {
+                        htmlRow += `<td>${cell}</td>`;
+                    }
+                });
+                tableBody.innerHTML += `<tr>${htmlRow}</tr>`;
+            });
+        })
+        .catch(err => {
+            alert("Error: New Sae List.txt ফাইলটি পাওয়া যায়নি অথবা ব্রাউজারে 'CORS' এর কারণে ব্লক হয়েছে। (Solution: Firefox ব্যবহার করুন অথবা একটি Local Server এ ওপেন করুন)");
+            console.error(err);
+        });
+    </script>
+</body>
+</html>
