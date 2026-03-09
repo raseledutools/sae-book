@@ -220,19 +220,32 @@
             document.body.appendChild(downloadLink);
             downloadLink.click();
         }
-
-        // PDF Download Function
+// PDF Download Function
         function downloadPDF() {
+            let tableContainer = document.querySelector('.table-container');
+            
+            // ১. PDF পুরোটা ক্যাপচার করার জন্য স্ক্রলবার রিমুভ করে হাইট ফুল করে দেওয়া
+            tableContainer.style.height = 'auto';
+            tableContainer.style.overflow = 'visible';
+
             const element = document.getElementById('pdfArea');
             const opt = {
-                margin:       0.2,
+                margin:       0.3,
                 filename:     `${currentPost}_Merit_List.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' }
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: element.scrollWidth },
+                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' },
+                pagebreak:    { mode: 'avoid-all' } // যাতে টেবিলের রো মাঝখান দিয়ে না কাটে
             };
-            html2pdf().set(opt).from(element).save();
+
+            // ২. PDF জেনারেট হয়ে গেলে আবার আগের ডিজাইনে (স্ক্রল) ফেরত আনা
+            html2pdf().set(opt).from(element).save().then(() => {
+                tableContainer.style.height = 'calc(100vh - 160px)';
+                tableContainer.style.overflowX = 'auto';
+                tableContainer.style.overflowY = 'auto';
+            });
         }
+       
     </script>
 </body>
 </html>
