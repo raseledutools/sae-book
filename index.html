@@ -9,10 +9,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            --primary: #4f46e5; /* Indigo */
+            --primary: #4f46e5; 
             --primary-dark: #3730a3;
-            --secondary: #0ea5e9; /* Sky Blue */
-            --accent: #f59e0b; /* Amber */
+            --secondary: #0ea5e9; 
+            --accent: #f59e0b; 
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #1e293b;
@@ -71,7 +71,7 @@
         /* Premium Table Grid */
         .table-wrapper { 
             background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
-            overflow-x: auto; overflow-y: auto; height: calc(100vh - 190px); 
+            overflow-x: auto; overflow-y: auto; height: calc(100vh - 350px); 
             border: 1px solid var(--border-color);
         }
         table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1200px; white-space: nowrap; }
@@ -84,7 +84,6 @@
             border-bottom: 2px solid var(--border-color);
         }
         
-        /* Specific Column Styling */
         .col-merit { font-weight: 800; color: #dc2626; text-align: center; background: #fef2f2; }
         .col-regi { font-weight: 700; color: #d97706; text-align: center; }
         .col-zone { color: #0284c7; font-weight: 600; text-align: center; }
@@ -95,11 +94,25 @@
         tr:nth-child(even) { background-color: #fafafa; }
         tr:hover { background-color: #e0e7ff; }
 
-        #pdfArea { background: var(--card-bg); border-radius: 12px; }
+        #pdfArea { background: var(--card-bg); border-radius: 12px; padding-bottom: 20px; }
         
-        /* PDF Title (Hidden initially) */
+        /* PDF Title */
         #pdfHeader { display: none; text-align: center; padding: 20px; background: white; border-radius: 12px 12px 0 0; }
         #pdfHeader h2 { color: var(--primary-dark); margin: 0; font-size: 26px; text-transform: uppercase; }
+
+        /* Zone Summary CSS */
+        .summary-section { margin-top: 25px; padding: 0 20px; }
+        .summary-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: inline-block; }
+        .summary-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .summary-card { 
+            background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; 
+            padding: 12px 20px; min-width: 120px; text-align: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;
+            border-left: 4px solid var(--secondary);
+        }
+        .summary-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .zone-name { font-size: 13px; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .zone-count { font-size: 20px; font-weight: 800; color: var(--primary-dark); }
     </style>
 </head>
 <body>
@@ -126,6 +139,12 @@
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
+        </div>
+        
+        <div class="summary-section" id="zoneSummaryContainer">
+            <div class="summary-title">📊 জোন ভিত্তিক পরিসংখ্যান</div>
+            <div class="summary-grid" id="zoneSummaryGrid">
+                </div>
         </div>
     </div>
 
@@ -157,7 +176,7 @@
             const regiIdx = getIndex(['registration', 'রেজি']);
             const zoneIdx = getIndex(['zone', 'জোন']);
             const nameIdx = getIndex(['name', 'নাম']);
-            const phoneIdx = getIndex(['phone', 'mobile', 'ফোন', 'মোবাইল']); // Phone column update
+            const phoneIdx = getIndex(['phone', 'mobile', 'ফোন', 'মোবাইল']);
             
             // Exclude Unwanted Columns
             const excludedIndices = [];
@@ -200,17 +219,17 @@
                     btn.onclick = () => {
                         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        renderTable(post, postIdx, meritIdx, phoneIdx);
+                        renderTable(post, postIdx, meritIdx, phoneIdx, zoneIdx);
                     };
                     tabsContainer.appendChild(btn);
                 });
 
-                if(posts.length > 0) renderTable(posts[0], postIdx, meritIdx, phoneIdx);
+                if(posts.length > 0) renderTable(posts[0], postIdx, meritIdx, phoneIdx, zoneIdx);
             }
         })
         .catch(err => alert("ফাইল লোড করা যাচ্ছে না! 'New Sae List.txt' ফাইলটি একই ফোল্ডারে আছে কিনা নিশ্চিত করুন।"));
 
-        function renderTable(post, postIdx, meritIdx, phoneIdx) {
+        function renderTable(post, postIdx, meritIdx, phoneIdx, zoneIdx) {
             currentPost = post;
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -231,17 +250,26 @@
             document.getElementById('rowCount').innerText = `মোট: ${filteredData.length} জন`;
             document.getElementById('pdfTitle').innerText = `${post} - মেরিট তালিকা`;
 
+            // Variables for Zone Summary
+            let zoneCounts = {};
+
             // Populate Data
             filteredData.forEach(row => {
                 let tr = document.createElement('tr');
                 let rowHTML = '';
                 
+                // Zone Summary calculation
+                if (zoneIdx !== -1) {
+                    let zName = row[zoneIdx] ? row[zoneIdx].trim() : "";
+                    if (zName === "" || zName === "-") zName = "Not Specified";
+                    zoneCounts[zName] = (zoneCounts[zName] || 0) + 1;
+                }
+                
                 orderedIndices.forEach((colIdx, pos) => {
                     let cellValue = row[colIdx] !== undefined ? row[colIdx].trim() : "-";
                     
-                    // --- SMART PHONE NUMBER FORMATTER ---
+                    // SMART PHONE NUMBER FORMATTER
                     if (colIdx === phoneIdx && cellValue !== "" && cellValue !== "-") {
-                        // Jodi number 0 diye shuru na hoy kintu digit hoy
                         if (!cellValue.startsWith('0') && !isNaN(cellValue.charAt(0))) {
                             cellValue = '0' + cellValue;
                         }
@@ -260,6 +288,23 @@
                 tr.innerHTML = rowHTML;
                 tbody.appendChild(tr);
             });
+
+            // Render Zone Summary
+            const summaryGrid = document.getElementById('zoneSummaryGrid');
+            summaryGrid.innerHTML = '';
+            
+            // Sort zones alphabetically (optional, but looks better)
+            let sortedZones = Object.keys(zoneCounts).sort();
+            
+            sortedZones.forEach(zone => {
+                let count = zoneCounts[zone];
+                summaryGrid.innerHTML += `
+                    <div class="summary-card">
+                        <div class="zone-name">${zone}</div>
+                        <div class="zone-count">${count} জন</div>
+                    </div>
+                `;
+            });
         }
 
         // CSV Export (Excel)
@@ -271,7 +316,6 @@
                 let row = [], cols = rows[i].querySelectorAll("td, th");
                 for (let j = 0; j < cols.length; j++) {
                     let data = cols[j].innerText.replace(/"/g, '""');
-                    // Force Excel to treat phone numbers as text by adding ="number" format or just quoting
                     if (cols[j].classList.contains('col-phone')) {
                         row.push('="' + data + '"');
                     } else {
@@ -306,7 +350,7 @@
 
             const opt = {
                 margin:       0.2,
-                filename:     `${currentPost}_Merit_List.pdf`,
+                filename:     `${currentPost}_Merit_List_With_Summary.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { scale: 2, useCORS: true, width: fullWidth, windowWidth: fullWidth },
                 jsPDF:        { unit: 'in', format: 'a2', orientation: 'landscape' },
@@ -314,7 +358,7 @@
             };
 
             html2pdf().set(opt).from(pdfArea).save().then(() => {
-                tableContainer.style.height = 'calc(100vh - 190px)';
+                tableContainer.style.height = 'calc(100vh - 350px)';
                 tableContainer.style.width = '100%';
                 tableContainer.style.overflowX = 'auto';
                 tableContainer.style.overflowY = 'auto';
